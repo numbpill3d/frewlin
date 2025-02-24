@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>⌭ 𝔻𝕚𝕘𝕚𝕥𝕒𝕝 𝔻𝕖𝕤𝕠𝕝𝕒𝕥𝕚𝕠𝕟 ⌭</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #030303;
+            color: #8e8e8e;
+            font-family: monospace;
+            cursor: none;
+        }
+
+        .viewport-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                rgba(3,3,3,0.99),
+                rgba(5,5,5,0.95),
+                rgba(3,3,3,0.99));
+        }
+
+        .render-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            mix-blend-mode: screen;
+        }
+
+        .interference {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.1) 0px,
+                rgba(0,0,0,0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            animation: interference 10s infinite linear;
+            opacity: 0.3;
+        }
+
+        .digital-fog {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at 50% 50%,
+                rgba(15,15,15,0.1) 0%,
+                rgba(5,5,5,0.2) 50%,
+                rgba(0,0,0,0.3) 100%
+            );
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
+        .memory-fragment {
+            position: absolute;
+            padding: 20px;
+            background: rgba(5,5,5,0.85);
+            border: 1px solid rgba(100,100,100,0.1);
+            color: rgba(150,150,150,0.6);
+            backdrop-filter: blur(3px);
+            transform-origin: center;
+            animation: fragmentFloat 8s infinite ease-in-out;
+        }
+
+        .memory-fragment::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(100,100,100,0.05),
+                transparent);
+            pointer-events: none;
+            animation: gradientShift 4s infinite ease-in-out;
+        }
+
+        #fragment-1 {
+            top: 40px;
+            left: 40px;
+            width: 260px;
+            animation-delay: 0s;
+        }
+
+        #fragment-2 {
+            bottom: 40px;
+            right: 40px;
+            width: 200px;
+            animation-delay: -2s;
+        }
+
+        .glitch-text {
+            display: inline-block;
+            animation: textGlitch 8s infinite;
+        }
+
+        @keyframes interference {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100%); }
+        }
+
+        @keyframes fragmentFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5px, -5px) rotate(0.5deg); }
+        }
+
+        @keyframes textGlitch {
+            0%, 100% { transform: translate(0); filter: opacity(0.8); }
+            94% { transform: translate(-2px, 1px); filter: opacity(0.6); }
+            96% { transform: translate(1px, -2px); filter: opacity(0.7); }
+            98% { transform: translate(-1px, -1px); filter: opacity(0.5); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .data-corruption {
+            position: fixed;
+            font-family: monospace;
+            color: rgba(100,100,100,0.2);
+            pointer-events: none;
+            user-select: none;
+            animation: corruptionFade 2s forwards;
+        }
+
+        @keyframes corruptionFade {
+            0% { opacity: 0.4; transform: translate(0); }
+            100% { opacity: 0; transform: translate(0, 20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="viewport-container">
+        <div class="render-layer" id="scene-container"></div>
+        <div class="interference"></div>
+        <div class="digital-fog"></div>
+        
+        <div class="memory-fragment" id="fragment-1">
+            <div class="glitch-text">system.memory.fragment[11]</div>
+            <div style="margin-top: 15px; font-size: 12px;">
+                in forgotten directories<br>
+                where lost packets roam<br>
+                echoes of binary dreams<br>
+                dissolve into static foam
+            </div>
+        </div>
+
+        <div class="memory-fragment" id="fragment-2">
+            <div class="glitch-text">void.transmission</div>
+            <div style="margin-top: 15px; font-size: 12px;">
+                signal lost...<br>
+                attempting recovery...<br>
+                error: soul not found
+            </div>
+        </div>
+
+        <div class="portal-container">
+            <div class="portal-door" id="void-door">
+                <img src="https://files.catbox.moe/cqbn6h.gif" alt="door to the void" class="door-image" />
+                <div class="door-glitch"></div>
+            </div>
+        </div>
+
+        <div class="triptych-container">
+            <div class="orbit-center"></div>
+            <div class="triptych-image" id="triptych-1">
+                <img src="https://files.catbox.moe/y577y3.webp" alt="void memory 1" />
+                <div class="triptych-overlay"></div>
+            </div>
+            <div class="triptych-image" id="triptych-2">
+                <img src="https://files.catbox.moe/h60azo.webp" alt="void memory 2" />
+                <div class="triptych-overlay"></div>
+            </div>
+            <div class="triptych-image" id="triptych-3">
+                <img src="https://files.catbox.moe/t8cq3k.webp" alt="void memory 3" />
+                <div class="triptych-overlay"></div>
+            </div>
+        </div>
+
+        <!-- Triptych Popups -->
+        <div class="triptych-popup" id="popup-1">
+            <div class="memory-shard">
+                <div class="shard-header glitch-text">memory.shard_01</div>
+                <div class="shard-content">
+                    <div class="shard-image">
+                        <img src="https://files.catbox.moe/t8cq3k.webp" alt="expanded memory 1" />
+                    </div>
+                    <div class="shard-text">
+                        in digital twilight<br>
+                        where memories dissolve<br>
+                        binary ghosts dance<br>
+                        through empty corridors
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="triptych-popup" id="popup-2">
+            <div class="memory-shard">
+                <div class="shard-header glitch-text">memory.shard_02</div>
+                <div class="shard-content">
+                    <div class="shard-image">
+                        <img src="https://files.catbox.moe/1p230j.gif" alt="expanded memory 2" />
+                    </div>
+                    <div class="shard-text">
+                        corrupted packets<br>
+                        scattered through void spaces<br>
+                        echoes of lost code<br>
+                        whisper in the dark
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="triptych-popup" id="popup-3">
+            <div class="memory-shard">
+                <div class="shard-header glitch-text">memory.shard_03</div>
+                <div class="shard-content">
+                    <div class="shard-image">
+                        <img src="https://files.catbox.moe/5iv1gp.gif" alt="expanded memory 3" />
+                    </div>
+                    <div class="shard-text">
+                        fractured protocols<br>
+                        bleeding through system walls<br>
+                        digital decay<br>
+                        consumes all light
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="void-profile" id="void-profile">
+            <div class="profile-header">
+                <div class="ascii-title">
+                    ██╗   ██╗ ██████╗ ██╗██████╗ ██████╗  █████╗ ███╗   ██╗███████╗
+                    ██║   ██║██╔═══██╗██║██╔══██╗██╔══██╗██╔══██╗████╗  ██║██╔════╝
+                    ██║   ██║██║   ██║██║██║  ██║██████╔╝███████║██╔██╗ ██║█████╗  
+                    ╚██╗ ██╔╝██║   ██║██║██║  ██║██╔══██╗██╔══██║██║╚██╗██║██╔══╝  
+                     ╚████╔╝ ╚██████╔╝██║██████╔╝██║  ██║██║  ██║██║ ╚████║███████╗
+                      ╚═══╝   ╚═════╝ ╚═╝╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝
+                </div>
+            </div>
+            <div class="profile-content">
+                <div class="profile-column left">
+                    <div class="profile-section">
+                        <div class="section-header glitch-text">identity_fragment.dat</div>
+                        <div class="profile-image">
+                            <img src="https://files.catbox.moe/ltodma.gif" alt="void entity" />
+                        </div>
+                        <div class="data-block">
+                            <span class="label">designation:</span>
+                            <span class="value">entity_451</span>
+                        </div>
+                        <div class="data-block">
+                            <span class="label">status:</span>
+                            <span class="value">∞ disconnected ∞</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-column right">
+                    <div class="profile-section">
+                        <div class="section-header glitch-text">void.memory.log</div>
+                        <div class="memory-log">
+                            [system]: initializing memory scan...<br>
+                            [error]: fragments corrupted<br>
+                            [status]: attempting recovery...
+                        </div>
+                        <div class="void-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">void resonance</div>
+                                <div class="stat-bar"><div class="stat-fill"></div></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">digital decay</div>
+                                <div class="stat-bar"><div class="stat-fill"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .portal-container {
+            position: fixed;
+            left: 40px;
+            bottom: 40px;
+            z-index: 100;
+        }
+
+        .portal-door {
+            width: 70px;
+            height: 100px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: brightness(0.7) contrast(1.2) grayscale(0.6);
+        }
+
+        .triptych-container {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            width: 200px;
+            height: 200px;
+            z-index: 100;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .orbit-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: rgba(100,100,100,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(100,100,100,0.1);
+            animation: centerPulse 4s infinite;
+        }
+
+        .triptych-image {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            left: 50%;
+            top: 50%;
+            margin: -25px;
+            cursor: pointer;
+            transform-origin: 50px 50px;
+            animation: orbitRotate 12s infinite linear;
+        }
+
+        .triptych-image:nth-child(2) {
+            animation-delay: -4s;
+        }
+
+        .triptych-image:nth-child(3) {
+            animation-delay: -8s;
+        }
+
+        @keyframes orbitRotate {
+            from {
+                transform: rotate(0deg) translateX(60px) rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg) translateX(60px) rotate(-360deg);
+            }
+        }
+
+        @keyframes centerPulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(0.8);
+                box-shadow: 0 0 15px rgba(100,100,100,0.1);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2);
+                box-shadow: 0 0 25px rgba(100,100,100,0.2);
+            }
+        }
+
+        .triptych-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.7) contrast(1.2) grayscale(0.6);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(100,100,100,0.1);
+        }
+
+        .triptych-image:hover img {
+            filter: brightness(0.9) contrast(1.3) grayscale(0.3);
+            transform: scale(1.1);
+            border-color: rgba(100,100,100,0.3);
+        }
+
+        .triptych-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg,
+                rgba(30,30,30,0.4) 0%,
+                transparent 40%,
+                rgba(30,30,30,0.4) 80%);
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes overlayShift {
+            0% { transform: translateX(-100%); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .triptych-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 800px;
+            background: rgba(5,5,5,0.95);
+            border: 1px solid rgba(100,100,100,0.1);
+            padding: 30px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .portal-door:hover {
+            transform: scale(1.02);
+        }
+
+        .door-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.8) contrast(1.2) grayscale(0.4);
+        }
+
+        .door-glitch {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.1) 0%,
+                transparent 20%,
+                rgba(255,255,255,0.1) 40%);
+            pointer-events: none;
+            animation: doorGlitch 4s infinite linear;
+        }
+
+        .void-profile {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(5,5,5,0.95);
+            border: 1px solid rgba(100,100,100,0.1);
+            padding: 40px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .ascii-title {
+            font-family: monospace;
+            color: rgba(150,150,150,0.6);
+            white-space: pre;
+            font-size: 10px;
+            line-height: 1.2;
+            animation: titleGlow 4s infinite;
+        }
+
+        .profile-content {
+            display: flex;
+            gap: 40px;
+        }
+
+        .profile-column {
+            flex: 1;
+        }
+
+        .profile-section {
+            background: rgba(20,20,20,0.5);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            color: rgba(150,150,150,0.8);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .profile-image {
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(0.7) contrast(1.2);
+        }
+
+        .data-block {
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .label {
+            color: rgba(150,150,150,0.4);
+        }
+
+        .value {
+            color: rgba(150,150,150,0.8);
+            margin-left: 10px;
+        }
+
+        .memory-log {
+            font-family: monospace;
+            font-size: 12px;
+            color: rgba(150,150,150,0.6);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .void-stats {
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(150,150,150,0.4);
+            margin-bottom: 5px;
+        }
+
+        .stat-bar {
+            height: 4px;
+            background: rgba(50,50,50,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(150,150,150,0.4);
+            width: 0%;
+            animation: statFill 3s forwards ease-out;
+        }
+
+        @keyframes doorGlitch {
+            0% { opacity: 0; transform: translateX(-100%); }
+            50% { opacity: 0.5; }
+            100% { opacity: 0; transform: translateX(100%); }
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 5px rgba(150,150,150,0.2); }
+            50% { text-shadow: 0 0 15px rgba(150,150,150,0.4); }
+        }
+
+        @keyframes statFill {
+            to { width: 75%; }
+        }
+    </style>
+
+    <script>
+        // Add to the existing script
+        document.getElementById('void-door').addEventListener('click', function() {
+            const profile = document.getElementById('void-profile');
+            profile.style.display = profile.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Initialize stat animations when profile is shown
+        document.querySelectorAll('.stat-fill').forEach(fill => {
+            fill.style.width = '0%';
+            setTimeout(() => {
+                fill.style.width = Math.random() * 40 + 35 + '%';
+            }, 100);
+        });
+
+        // Remove the old rotation logic
+        const triptychImages = document.querySelectorAll('.triptych-image');
+        
+        // Click handlers for the orbiting images
+        triptychImages.forEach((image, index) => {
+            image.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const popup = document.getElementById(`popup-${index + 1}`);
+                document.querySelectorAll('.triptych-popup').forEach(p => {
+                    if (p !== popup) p.style.display = 'none';
+                });
+                popup.style.display = popup.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        // Close popups when clicking outside
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.triptych-image') && !e.target.closest('.triptych-popup')) {
+                document.querySelectorAll('.triptych-popup').forEach(popup => {
+                    popup.style.display = 'none';
+                });
+            }
+        });
+    </script>
+
+    <script>
+        class DigitalVoid {
+            constructor() {
+                this.container = document.getElementById('scene-container');
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ 
+                    antialias: true,
+                    alpha: true
+                });
+                
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.container.appendChild(this.renderer.domElement);
+                
+                this.camera.position.z = 5;
+                
+                this.init();
+                this.animate();
+                this.initCorruptionEffect();
+            }
+
+            createGlowingGeometry() {
+                const geometry = new THREE.IcosahedronGeometry(1, 2);
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0x232323,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                return new THREE.Mesh(geometry, material);
+            }
+
+            createParticleField(count, size, color, range) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+                const colors = new Float32Array(count * 3);
+                
+                const baseColor = new THREE.Color(color);
+                
+                for(let i = 0; i < count * 3; i += 3) {
+                    positions[i] = (Math.random() - 0.5) * range;
+                    positions[i + 1] = (Math.random() - 0.5) * range;
+                    positions[i + 2] = (Math.random() - 0.5) * range;
+                    
+                    colors[i] = baseColor.r;
+                    colors[i + 1] = baseColor.g;
+                    colors[i + 2] = baseColor.b;
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                
+                const material = new THREE.PointsMaterial({
+                    size: size,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.6,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                return new THREE.Points(geometry, material);
+            }
+
+            createOrbitalRing(radius, segments) {
+                const geometry = new THREE.TorusGeometry(radius, 0.02, 16, segments);
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0x333333,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                return new THREE.Mesh(geometry, material);
+            }
+
+            init() {
+                // Core void structure
+                this.voidCore = this.createGlowingGeometry();
+                this.voidOuter = this.createGlowingGeometry();
+                this.voidOuter.scale.set(2, 2, 2);
+
+                // Particle systems
+                this.particles1 = this.createParticleField(1000, 0.015, 0x444444, 6);
+                this.particles2 = this.createParticleField(500, 0.02, 0x333333, 4);
+                this.particles3 = this.createParticleField(200, 0.025, 0x222222, 3);
+
+                // Orbital rings
+                this.orbitals = [];
+                for(let i = 0; i < 3; i++) {
+                    const ring = this.createOrbitalRing(1.5 + i * 0.5, 64);
+                    ring.rotation.x = Math.random() * Math.PI;
+                    ring.rotation.y = Math.random() * Math.PI;
+                    this.orbitals.push(ring);
+                    this.scene.add(ring);
+                }
+
+                this.scene.add(this.voidCore);
+                this.scene.add(this.voidOuter);
+                this.scene.add(this.particles1);
+                this.scene.add(this.particles2);
+                this.scene.add(this.particles3);
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                const time = Date.now() * 0.001;
+
+                // Void core animations
+                this.voidCore.rotation.x = Math.sin(time * 0.1) * 0.5;
+                this.voidCore.rotation.y = Math.cos(time * 0.2) * 0.5;
+                
+                this.voidOuter.rotation.x = -time * 0.1;
+                this.voidOuter.rotation.y = time * 0.15;
+
+                // Particle field animations
+                this.particles1.rotation.y = time * 0.05;
+                this.particles2.rotation.x = time * 0.08;
+                this.particles3.rotation.z = time * 0.06;
+
+                // Orbital animations
+                this.orbitals.forEach((ring, i) => {
+                    ring.rotation.x += 0.002 * (i + 1);
+                    ring.rotation.y += 0.003 * (i + 1);
+                    ring.rotation.z += 0.001 * (i + 1);
+                });
+
+                // Camera movement
+                this.camera.position.x = Math.sin(time * 0.2) * 0.5;
+                this.camera.position.y = Math.cos(time * 0.3) * 0.5;
+                this.camera.lookAt(this.scene.position);
+
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            initCorruptionEffect() {
+                setInterval(() => {
+                    const corruption = document.createElement('div');
+                    corruption.className = 'data-corruption';
+                    corruption.style.left = Math.random() * window.innerWidth + 'px';
+                    corruption.style.top = Math.random() * window.innerHeight + 'px';
+                    corruption.textContent = String.fromCharCode(0x2800 + Math.floor(Math.random() * 256));
+                    document.body.appendChild(corruption);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(corruption);
+                    }, 2000);
+                }, 100);
+            }
+
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Initialize the void
+        const void_instance = new DigitalVoid();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => void_instance.onWindowResize());
+    </script>
+</body>
+</html>
